@@ -1,0 +1,180 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{caption}
+\usepackage{subcaption}
+\geometry{a4paper}
+
+\title{MuesliSwap Open Transaction Chaining}
+\author{MuesliSwapTeam}
+\date{\today}
+
+\usepackage{biblatex}
+\addbibresource{references.bib}
+
+
+\begin{document}
+
+\maketitle
+% \newpage
+% \tableofcontents
+% \newpage
+
+\section{Introduction}
+
+The Cardano blockchain has emerged as a significant player in the decentralized application (dApp) landscape, offering a blend of security, scalability, and sustainability.
+However, like many blockchain ecosystems, Cardano faces challenges in optimizing transaction processing and dApp performance.
+This document focuses on addressing these challenges through the development of Open Transaction Chaining tooling, aiming to streamline and accelerate transaction processing in Cardano dApps.
+
+\subsection{Importance of transaction chaining for efficiency}
+
+The primary objective of this document is to explore and propose a series of enhancements to the Cardano-node and Nami wallet.
+These enhancements are centered around the concept of transaction chaining - a method that could significantly reduce transaction times, thereby enhancing the overall user experience and efficiency of dApps on the Cardano blockchain.
+Transaction chaining involves consuming transactions that are not yet confirmed on-chain but only exist in the local mempool.
+The concept of transaction chaining has become more popular with the introduction of open tooling that allowed
+inspection of the local mempool of the Cardano-node \cite{cardanians2023} and is presented in more detail in \cite{optim2022}.
+
+Without transaction chaining, transaction consuming a unique state, such as a shared liquidity pool,
+must wait for the previous transaction to be confirmed and included in a block before they can be processed.
+This introduces a significant delay in the transaction processing pipeline, up to 20 seconds, which can be detrimental to the user experience.
+Transaction chaining aims to eliminate this delay by allowing transactions to be processed before preceding transaction are confirmed in blocks, thereby decreasing the latency of the system.
+
+\subsection{Objectives and Overview}
+To achieve this, we will first delve into the existing functionality and codebase of both the Cardano-node and the Nami wallet,
+particularly focusing on aspects related to transaction building and submission.
+This analysis is crucial for identifying the potential areas for integration of transaction chaining mechanisms.
+Additionally, we will consider other relevant tools, such as Ogmios, to determine if they necessitate adjustments to align with the proposed transaction chaining feature.
+
+The subsequent sections will outline the scope of the necessary changes, followed by a detailed, step-by-step development plan for implementing these changes.
+The goal is to provide a clear roadmap that not only enhances the current transaction processing capabilities but also sets a foundation for future advancements in the Cardano ecosystem.
+
+\section{Existing Functionality and Code Base Analysis}
+\subsection{Cardano-node}
+\begin{itemize}
+    \item Current architecture and transaction handling process
+    \item Analysis of code related to transaction building and submission
+\end{itemize}
+\subsection{Nami Wallet}
+
+\subsubsection{Overview over Nami Wallet}
+
+Nami Wallet stands out as a pioneering browser-based wallet extension, specifically designed as an open and intuitive interface to the Cardano blockchain ecosystem \cite{nami}.
+This non-custodial solution offers users a high degree of control and security over their assets.
+It allows users to store and manage Cardano Native Tokens (CNTs), delegate their stake and interact with decentralized applications (dApps) on the Cardano blockchain.
+
+Nami Wallet has a history of defining the de-facto standard on Cardano, with the first implementation of the Cardano Improvement Proposal (CIP) 30, which introduced the concept of a unified wallet API for Cardano dApps \cite{cip30}.
+Since its implementation is open-source, it serves as a good starting point for the development and standardization of transaction chaining features.
+
+\subsubsection{Current Transaction Processing}
+
+Currently, Nami wallet is a single address wallet.
+This means that all funds are kept in a single combination of public key and stake key.
+The history of transactions of the wallet is fetched from Blockfrost.
+This only considers transactions that are confirmed and included in a recent block and frequently causes delays.
+This presents an opportunity for adding transaction that are still in the mempool.
+
+When building transactions, Nami wallet fetches all open UTxOs of the wallet from Blockfrost
+and uses them to build the transaction.
+This also does not consider whether (i) UTxOs have potentially been already spent in a pending transaction in the mempool and
+(ii) whether there are UTxOs available in the mempool that could be used to build the transaction.
+This presents the second opportunity for adding transaction chaining support.
+
+Apart from this, the wallet also displays the current value of assets in the user wallet.
+This display is based on the output of the Blockfrost endpoints returning the current assets at a specific stake key.
+Since transactions in the mempool are not sure to be included in the blockchain
+we consider it not necessary to include them in the calculation of the current assets.
+Including the value and subsequently removing it would lead to a confusing user experience.
+Therefore, there is no need to include mempool updates for computed assets.
+
+For the purposes of staking user funds, we also do not consider it necessary to include mempool transactions,
+since there is usually no urgency or need for quick updates regarding the stake pool.
+The stake pool delegation only takes effect several days after a submission.
+
+\subsection{Other Relevant Tools}
+
+\subsubsection{Ogmios}
+
+Ogmios is a low-level tool that provides an alternative interface to the Cardano-node.
+It provides a mini-protocol for interaction with the mempool of the Cardano-node.
+Since ogmios is such a low-level tool and further provides its own mempool protocol, we do not consider it necessary to make any changes to it to support transaction chaining.
+Either way, the transaction building tooling in ogmios relies on the same code
+that the Cardano-CLI uses to build transactions.
+Therefore there is no need to seperately update ogmios.
+
+\subsubsection{Others}
+
+\section{Scope of Changes}
+
+The changes conducted in the scope of this project concern the facilitation of transaction chaining in
+the Cardano-node and Nami wallet.
+The intended changes concern seamless integration of transactions that are still in the mempool into the transaction building process
+and the intuitive display of such transactions in transaction overviews as pending transactions.
+In both the Cardano-node (more specifically the Cardano-cli) and Nami wallet,
+display and transaction building are commonplace user-facing activities.
+We therefore consider these changes to be of high importance for the user experience of Cardano dApps.
+
+The changes do not include changes related to implementations in the validity check of transactions,
+namely changes regarding the check whether such a chained transaction can correctly be applied to the current state of the blockchain.
+The reason is that from our current perspective, this task is not required.
+The cardano ledger implementation provided in the default Cardano-node already supports this functionality.
+
+\section{Development Plan for New Features}
+
+\subsection{Implementation Plan for the Cardano-node}
+\subsection{Implementation Plan for Nami Wallet}
+
+The history of transactions of the wallet is fetched from Blockfrost.\footnote{\url{https://github.com/berry-pool/nami/blob/fb05c0b1fba48188664409d3132ca730a5014bba/src/ui/app/components/historyViewer.jsx\#L39}}
+This only considers transactions that are confirmed and included in a recent block and frequently causes delays.
+By using the recently developed endpoint of Blockfrost to provide access to the mempool of the Cardano-node\footnote{\url{https://docs.blockfrost.io/\#tag/Cardano-Mempool/paths/~1mempool~1addresses~1\%7Baddress\%7D/get}},
+filtered by address, we can fetch all transactions that are still in the mempool and display them in the transaction history of the wallet as pending transactions.
+
+When building transactions, Nami wallet fetches all open UTxOs of the wallet from Blockfrost
+and uses them to build the transaction.\footnote{\url{https://github.com/berry-pool/nami/blob/fb05c0b1fba48188664409d3132ca730a5014bba/src/ui/app/pages/send.jsx\#L377}}
+This also does not consider whether (i) UTxOs have potentially been already spent in a pending transaction in the mempool and
+(ii) whether there are UTxOs available in the mempool that could be used to build the transaction.
+Again, by using the Blockfrost endpoint for mempool transactions, we can fetch all UTxOs that are still in the mempool and use them to build the transaction.
+
+\subsection{Integration Strategies}
+
+Effective integration strategies are paramount for the successful implementation of Open Transaction Chaining tooling in the Cardano ecosystem,
+specifically within the Cardano-node and Nami wallet.
+This section outlines the methodologies and approaches that will be employed to ensure that the new features are not only technically sound but also align well with the existing infrastructure and user expectations.
+
+\subsubsection{Interface Design}
+The goal is to design interfaces that allow seamless communication between the Cardano-node, Nami wallet, and other relevant tools.
+These interface must support the nuances of transaction chaining while maintaining backward compatibility with existing functionalities and being intuitive to use.
+This will enhance the user interface of the Nami wallet to intuitively accommodate new transaction chaining features, ensuring that users can easily access and utilize these enhancements without a steep learning curve.
+\subsubsection{Modular Implementation} 
+We adopt a modular approach to implementation, ensuring that new changes can be integrated without disrupting the existing system operations.
+This approach allows for phased rollouts and easier troubleshooting.
+
+\subsubsection{Comprehensive Testing}
+We will conduct comprehensive testing to ensure that the new features are robust and function as intended.
+This ensures that the new features function correctly within the broader ecosystem and do not introduce unforeseen issues.
+The testing comprises a series of manual tests, using the wallet on testnet and mainnet environments and interacting with a variety of dApps.
+
+\subsubsection{User Feedback Loops}
+We establish feedback channels with end-users and developers to gather insights on usability and performance.
+This feedback is crucial for iterative improvements and ensuring the new features meet user needs.
+
+By adhering to these integration strategies, we aim to create a robust and user-friendly environment for transaction chaining in the Cardano ecosystem. The ultimate goal is to enhance the efficiency and scalability of Cardano dApps, thereby contributing to the overall growth and success of the Cardano blockchain.
+
+
+\section{Conclusion}
+\begin{itemize}
+    \item Summary of the proposed changes and their expected impact
+    \item Future outlook and potential extensions of this work
+\end{itemize}
+
+\section{References}
+
+\printbibliography
+
+\end{document}
