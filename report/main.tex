@@ -57,11 +57,40 @@ The goal is to provide a clear roadmap that not only enhances the current transa
 
 \section{Existing Functionality and Code Base Analysis}
 \subsection{Cardano-node}
-\begin{itemize}
-    \item Current architecture and transaction handling process
-    \item Analysis of code related to transaction building and submission
-\end{itemize}
-\subsection{Nami Wallet}
+
+\subsubsection{Overview over Cardano-node}
+
+The Cardano-node is the core component of the Cardano blockchain.
+It is responsible for the validation of transactions and blocks and the propagation of these blocks to other nodes in the network.
+The Cardano-node is written in Haskell and is open-source.
+It is the reference implementation of the Cardano blockchain and is used by all other tools and wallets that interact with the Cardano blockchain.
+
+In this project we will focus on the part of the Cardano-node that is user-facing and used to show the current state of the UTxO and build and submit transactions.
+The Cardano-cli is the command line interface to the Cardano-node and communicates with the node via a local socket to achieve the mentioned tasks.
+However, there are as of now no user-facing tools that access or make use of the mempool in the local node -- even though every node has a mempool that stores locally submitted and
+peer-to-peer shared transactions.
+
+\subsubsection{Transaction presentation and building}
+
+The Cardano-cli provides a command to query the current UTxO of a given address or filtered by a transaction hash and id.
+This command lists all UTxOs that are currently available to be spent by the given address or that were an output of the specified transaction.
+For this list, the local Cardano-node is queried for the current UTxO set.
+The mempool is not considered for this query by default nor is there a user setting to enable it.
+This leads to delays when trying to confirm that a transaction has been submitted successfully, since it is not shown to the user even though it is residing in the mempool.
+
+For transaction building the Cardano-cli provides a command that allows the user to specify the inputs and outputs of the transaction.
+Since a few versions, the CLI offers a convenient build command that automatically evaluates a transaction, computes the required fees
+and sends left-over change to a specified address.
+This build command queries the local Cardano-node for the current UTxO set and uses it to build the transaction and evaluate potential Smart Contracts
+that need to be executed.
+Similar to the listing of UTxOs, the mempool is not considered for this query by default nor is there a user setting to enable it.
+This leads to delays when trying to build a transaction that is based on a transaction that is still in the mempool.
+
+Paradoxically, the node allows the user to submit transactions that consume UTxO still residing in the mempool.
+Therefore, the submit command of the Cardano-cli does not need to be changed to support transaction chaining.
+This also implies that we do not need to change the validity check of transactions in the node to support transaction chaining, 
+and thus do not require any significant changes to the core ledger logic.
+
 
 \subsubsection{Overview over Nami Wallet}
 
@@ -72,7 +101,7 @@ It allows users to store and manage Cardano Native Tokens (CNTs), delegate their
 Nami Wallet has a history of defining the de-facto standard on Cardano, with the first implementation of the Cardano Improvement Proposal (CIP) 30, which introduced the concept of a unified wallet API for Cardano dApps \cite{cip30}.
 Since its implementation is open-source, it serves as a good starting point for the development and standardization of transaction chaining features.
 
-\subsubsection{Current Transaction Processing}
+\subsubsection{Transaction presentation and building}
 
 Currently, Nami wallet is a single address wallet.
 This means that all funds are kept in a single combination of public key and stake key.
@@ -110,6 +139,11 @@ Therefore there is no need to seperately update ogmios.
 
 \subsubsection{Others}
 
+We did not find any other tools that would need to be updated to support transaction chaining.
+This is due to the fact that the Cardano-node is the reference implementation of the Cardano blockchain and
+therefore all other tools rely on it for their functionality.
+Therefore, most tools will automatically support transaction chaining once the Cardano-node supports it, or will be able to quickly adopt the changes to benefit from transaction chaining.
+
 \section{Scope of Changes}
 
 The changes conducted in the scope of this project concern the facilitation of transaction chaining in
@@ -128,6 +162,22 @@ The cardano ledger implementation provided in the default Cardano-node already s
 \section{Development Plan for New Features}
 
 \subsection{Implementation Plan for the Cardano-node}
+
+The list of UTxOs that is returned by the Cardano-cli is fetched from the local Cardano-node.
+This list is currently not including any UTxOs that are still in the mempool.
+The plan for this project is to introduce a new flag to the Cardano-cli that allows the user to include mempool transactions in the list of UTxOs.
+This includes applying the mempool to the UTxO set that is returned by the Cardano-node, consuming UTxOs that are already spent in the mempool and
+adding UTxOs that are still in the mempool to the list of UTxOs.
+The required changes are expected to be minimal, since the Cardano-node already provides the functionality to apply the mempool to the UTxO set \footnote{\url{https://github.com/input-output-hk/cardano-ledger/blob/afedb7d519761ccdd9c013444aa4b3e0bf0e68ef/eras/shelley/impl/src/Cardano/Ledger/Shelley/API/Mempool.hs\#L109}}
+and provides a protocol to fetch the current mempool from the node \footnote{\url{https://github.com/input-output-hk/ouroboros-network/pull/3404}}.
+A small caveat is that there is no API to fetch the UTxO with the current mempool applied already.
+It will have to be determined whether it is more feasible to implement this API or to apply the mempool to the UTxO set in the Cardano-cli.
+
+The transaction building command of the Cardano-cli is currently also not considering the mempool.
+For this command, the plan is to introduce a new flag that allows the user to include mempool transactions in the UTxO set that is used to build the transaction.
+This would be implemented by augmenting the UTxO set that is fetched from the Cardano-node for transaction building \footnote{\url{https://github.com/input-output-hk/cardano-cli/blob/ca5392ffffc33710155ecbd0fa4a63ccabdc9f99/cardano-cli/src/Cardano/CLI/EraBased/Run/Transaction.hs\#L143}} with the mempool.
+The implementation would benefit from the same API in the Cardano-node that is used for the UTxO listing, for which the mempool is applied to the UTxO set.
+
 \subsection{Implementation Plan for Nami Wallet}
 
 The history of transactions of the wallet is fetched from Blockfrost.\footnote{\url{https://github.com/berry-pool/nami/blob/fb05c0b1fba48188664409d3132ca730a5014bba/src/ui/app/components/historyViewer.jsx\#L39}}
@@ -168,10 +218,14 @@ By adhering to these integration strategies, we aim to create a robust and user-
 
 
 \section{Conclusion}
-\begin{itemize}
-    \item Summary of the proposed changes and their expected impact
-    \item Future outlook and potential extensions of this work
-\end{itemize}
+
+In conclusion, the introduction of Open Transaction Chaining in the Cardano ecosystem, as implemented in the Cardano-node and Nami Wallet, represents a significant step forward in enhancing the efficiency and user experience of decentralized applications (dApps) on the Cardano blockchain. The proposed changes, focusing on integrating mempool transactions into both transaction building and display processes, promise to reduce transaction processing times and improve overall system responsiveness.
+
+By enabling transactions to chain off of unconfirmed transactions in the mempool, we effectively minimize the latency associated with transaction processing. This feature is especially beneficial in scenarios where rapid transaction turnaround is crucial, such as in high-frequency trading or interactive gaming applications on the blockchain. Furthermore, the modular implementation and comprehensive testing strategies ensure that these enhancements are robust, reliable, and compatible with existing systems.
+
+Looking ahead, the potential for further development in this domain is vast. Future enhancements could include more advanced mempool management techniques, further optimization of transaction processing algorithms, and even the integration of these concepts into other blockchain platforms beyond Cardano. The groundwork laid by this project opens up numerous avenues for research and development, potentially leading to more sophisticated blockchain infrastructures capable of handling an even wider array of applications with greater efficiency.
+
+Overall, the implementation of Open Transaction Chaining in the Cardano ecosystem marks a pivotal advancement in blockchain technology. It not only addresses current challenges but also sets a precedent for future innovations in blockchain transaction processing, thereby contributing significantly to the evolution and maturation of blockchain technologies.
 
 \section{References}
 
