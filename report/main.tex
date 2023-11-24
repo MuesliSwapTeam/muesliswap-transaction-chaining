@@ -160,6 +160,7 @@ The reason is that from our current perspective, this task is not required.
 The cardano ledger implementation provided in the default Cardano-node already supports this functionality.
 
 \section{Development Plan for New Features}
+\label{sec:devplan}
 
 \subsection{Implementation Plan for the Cardano-node}
 
@@ -216,6 +217,57 @@ This feedback is crucial for iterative improvements and ensuring the new feature
 
 By adhering to these integration strategies, we aim to create a robust and user-friendly environment for transaction chaining in the Cardano ecosystem. The ultimate goal is to enhance the efficiency and scalability of Cardano dApps, thereby contributing to the overall growth and success of the Cardano blockchain.
 
+\section{Impact on CIPs}
+
+The proposed changes in this document do imply some changes to the way that transactions are built and displayed.
+This has potential impact on standards that concern interaction with external tools, i.e. for obtaining UTxOs or Transaction histories.
+Especially relevant for this context is CIP-30, which defines a standard for dApps to interact with wallets for transaction building and submission.
+
+\subsection{CIP-30}
+
+CIP-30 \cite{cip30} defines a standard for dApps to fetch relevant information about wallets owned by the user.
+Moreover, it defines a standard for dApps to request the user to sign a transaction and submit it to the blockchain.
+We will outline below which changes or extensions may be necessary in the context of the changes proposed in \cref{sec:devplan}.
+
+We note that the biggest impact of the proposed changes is on endpoints that return specific UTxO sets 
+or are related to transaction building and submission.
+
+The first endpoint affected is the \texttt{getUTxOs} endpoint.
+We propose a boolean value to be added to the request that allows the user to specify whether mempool transactions should be included in the response.
+This value should default to false, to ensure that existing dApps are not affected by the change.
+However for dApps that want to make use of the new functionality, the value can be set to true.
+The reason that backwards compatibility should be preserved is that dApps may not be able to handle transactions that are not fully confirmed yet.
+An alternative would be to introduce a new endpoint that returns the UTxO set with mempool transactions applied.
+Either way, the dApp would need to make sure that the wallet supports the new feature before using it.
+
+The second endpoint affected is the \texttt{getBalance} endpoint.
+Similar to the \texttt{getUTxOs} endpoint, we propose a boolean value to be added to the request that allows the user to specify whether mempool transactions should be included in the response.
+This value should default to false, to ensure that existing dApps are not affected by the change.
+In contrast to our decision not to include mempool transactions in the balance of Nami wallet, the decision whether they should be included for the dApp
+should be left to the dApp developer.
+
+The third endpoint affected is the \texttt{signTx} endpoint.
+While the endpoint itself is not affected, the dApp should be aware that the transaction that is signed may not be valid yet.
+Whether this causes an issue depends on the wallet implementation.
+We propose adjusting the description of this endpoint such that dApp developers are aware of this potential issue.
+The same applies to the \texttt{submitTx} endpoint.
+
+\subsection{CIP-2}
+
+The changes proposed in this document do not affect CIP-2 \cite{cip2}.
+While it may seem relevant for coin-selection, the algorithms for coin-selection are 
+usually presented with a defined UTxO set.
+However we want to point out that the changes proposed in this document may affect the UTxO set that is presented to the coin-selection algorithm.
+Potentially, wallets may want to invoke coin selection algorithms with different UTxO sets,
+once with the UTxO set in the state of confirmed transactions and once with the UTxO set with an applied mempoolwith an applied mempool.
+Using UTxOs with an applied mempool can avoid submitting failed transactions due to insufficient funds
+or re-spending UTxOs that are already spent in the mempool.
+At the same time, using mempool transactions is highly speculative and may result in an invalid transaction,
+should the mempool transaction be dropped from the mempool before the transaction is submitted.
+
+\subsection{Others}
+
+We did not find any other CIPs that would be affected by the changes proposed in this document.
 
 \section{Conclusion}
 
