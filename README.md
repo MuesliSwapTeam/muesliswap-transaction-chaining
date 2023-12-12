@@ -6,7 +6,20 @@ This repository contains the documentation and references to the implementation 
 ### Structure
 
 The directory `report` contains a detailed analysis of the required changes to implement transaction chaining for widespread open-source projects.
-Implementation references are following soon.
+Implementation references are listed below
+
+### Nami Wallet
+
+- Adding pending transactions to the transaction history: https://github.com/input-output-hk/nami/pull/885
+- Adding pending transactions to the transaction building and getUTxO endpoint: https://github.com/input-output-hk/nami/pull/898
+
+### Cardano-Node
+
+> Coming soon
+
+### CIPs
+
+> Coming soon
 
 
 
