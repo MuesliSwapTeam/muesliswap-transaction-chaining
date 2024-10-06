@@ -33,5 +33,9 @@ In order to submit a chain of transactions (all in the same block) via `pycardan
 8. Fund the wallet (to be found in `keys/<your-wallet-name>.test_addr`) with some (test)ADA.
 9. Run `python -m muesliswap_transaction_chaining.construct_tx_chain <your-wallet-name> <chain-length> <use-blockfrost>` to submit a chain of `<chain-length>` transactions from the `<your-wallet-name>` wallet. The <use-blockfrost> argument should be set to `True` or `False` if you want to use the `blockfrost` or `ogmios` backend, respectively.
 
+### Demo Video
+
+For a demo video of both the `pycardano` and Nami Wallet implementations, we refer [here](https://www.youtube.com/watch?v=oPAOpRYLC_Q).
+
 
 [1]: [Open Transaction Chaining tooling to speed up Cardano dApps - By MuesliSwap](https://projectcatalyst.io/funds/10/f10-development-and-infrastructure/open-transaction-chaining-tooling-to-speed-up-cardano-dapps-by-muesliswap)
