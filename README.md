@@ -17,7 +17,7 @@ The following PRs have been opened by MuesliSwapTeam regarding Mempool support (
 - Adding pending transactions to the transaction building and getUTxO endpoint: https://github.com/input-output-hk/nami/pull/898
 
 A fork of Nami Wallet that supports transaction chaining can be found here:
-- https://github.com/MuesliSwapTeam/muesliswap-txchaining-nami
+- https://github.com/MuesliSwapLabs/muesliswap-txchaining-nami
 
 ### Tx-Chaining Demo via `pycardano`
 
