@@ -21,6 +21,76 @@
 
 \maketitle
 
+
+\section*{Official Close-Out Summary}
+\begin{itemize}
+    \item \textbf{Name of project and Project URL on Fund:}\\
+    MuesliSwap Open Transaction Chaining \\
+    \url{https://projectcatalyst.io/funds/10/f10-development-and-infrastructure/open-transaction-chaining-tooling-to-speed-up-cardano-dapps-by-muesliswap}
+
+    \item \textbf{Project ID:} 1000139
+
+    \item \textbf{Project managed by:} MuesliSwap Team
+
+    \item \textbf{Project started in:} November 2023
+
+    \item \textbf{Project completed in:} November 2024
+
+    \item \textbf{Challenge KPIs and how the project addressed them:}
+    \begin{itemize}
+        \item \textbf{Faster dApp interactions:} Implemented TxChaining in Nami Wallet, allowing dependent transactions to be chained without waiting for on-chain confirmation.
+        \item \textbf{Improved developer experience:} Provided code, documentation, and examples (PyCardano, \texttt{ogmios}, \texttt{Blockfrost}) to guide developers in using TxChaining.
+        \item \textbf{Validation of concept:} Demonstrated on-chain test transactions on PreProd, confirming multiple chained transactions could appear in a single block.
+    \end{itemize}
+
+    \item \textbf{Project KPIs and how the project addressed them:}
+    \begin{itemize}
+        \item \textbf{Implement TxChaining in Nami Wallet:} Integrated \texttt{getMempoolTxs} and Mempool History features, enabling real-time referencing of pending transactions.
+        \item \textbf{Demonstrate working TxChaining on PreProd testnet:} Showed successful chained transactions confirmed in the same block.
+        \item \textbf{Close-out communication and demo:} Produced this close-out report, a video demonstration, and engaged with the community.
+        \item \textbf{Community documentation and engagement:} Shared results via repositories, social media, and live discussions, encouraging feedback and adoption.
+    \end{itemize}
+
+    \item \textbf{Key achievements:}
+    \begin{itemize}
+        \item Successfully implemented TxChaining in a popular Cardano wallet (Nami).
+        \item Engaged with the Cardano community through open-source code, Twitter Spaces, and forums.
+        \item Documented implementations and test results, fostering collaboration and understanding.
+    \end{itemize}
+
+    \item \textbf{Key learnings:}
+    \begin{itemize}
+        \item Cardano Node inherently supports TxChaining, so no node-level changes or CIP submissions were needed.
+        \item Tools like \texttt{ogmios} and \texttt{Blockfrost} support TxChaining workflows effectively.
+        \item Early community engagement helps refine focus and implementation strategies.
+    \end{itemize}
+
+    \item \textbf{Next steps for the product or service developed:}
+    \begin{itemize}
+        \item Encourage adoption of TxChaining by other wallets and dApps.
+        \item Continue refining documentation, examples, and community education.
+        \item Consider future standardization efforts or best practices for TxChaining references.
+    \end{itemize}
+
+    \item \textbf{Final thoughts/comments:}\\
+    TxChaining enhances transaction efficiency and user experience for Cardano dApps. This project sets a foundational example and provides open-source resources, paving the way for broader ecosystem adoption and innovation.
+
+    \item \textbf{Links to other relevant project sources or documents:}
+    \begin{itemize}
+        \item Custom Nami Wallet Implementation (PR):\\
+        \url{https://github.com/input-output-hk/nami/pull/966}
+        \item PyCardano Transaction Chaining Examples:\\
+        \url{https://github.com/MuesliSwapTeam/muesliswap-transaction-chaining}
+        \item X (Twitter) Space Community Discussion:\\
+        \url{https://x.com/MuesliSwapTeam/status/1863674797986594842}
+        \item Further Documentation:\\
+        \url{https://github.com/MuesliSwapTeam/muesliswap-transaction-chaining/blob/main/report/main.pdf}
+    \end{itemize}
+
+    \item \textbf{Link to Close-out Video:} \url{https://www.youtube.com/watch?v=WdUY8CbxWDU}
+\end{itemize}
+
+
 \section{Introduction}
 This report provides a summary and analysis of the MuesliSwap Open Transaction Chaining (TxChaining) project for the Cardano Catalyst. The goal of this project was to improve the transaction efficiency of Cardano-based decentralized applications (dApps) by implementing TxChaining capabilities in the Nami Wallet and assessing the support for TxChaining in the Cardano Node and related tools.
 
@@ -130,6 +200,5 @@ This testing underscores the functionality and user benefits of TxChaining withi
 
 \section{Conclusion}
 The implementation of Open Transaction Chaining in the Cardano ecosystem represents a significant leap forward in enhancing transaction efficiency and usability for Cardano dApps. Our work on the Nami Wallet and subsequent documentation provides a foundation for future enhancements and sets a precedent for community-driven innovations in the blockchain space. TxChaining introduces new possibilities for high-frequency and low-latency dApp interactions, and we look forward to continued community support and adoption of these improvements.
-
 
 \end{document}
